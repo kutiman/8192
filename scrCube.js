@@ -3,8 +3,11 @@
 var cubeLevel : int = 0;
 var textObject : GameObject;
 var colorList : Color[];
+var fieldPos : Array = new Array();
 
 function Start () {
+	gameObject.tag = "tagCube";
+	
 	CreateText();
 	SetText();
 	colorList = CreateColorList();
@@ -56,6 +59,7 @@ function OnMouseDown () {
 	cubeLevel++;
 	SetText();
 	SetColor();
+	scrGame.fieldArray[fieldPos[0], fieldPos[1]] = cubeLevel;
 }
 
 function CreateColorList () {
@@ -79,6 +83,8 @@ function CreateColorList () {
 	return ls;
 }
 
-
+function DestroySelf () {
+	Destroy(gameObject);
+}
 
 
