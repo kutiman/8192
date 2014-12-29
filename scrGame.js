@@ -11,8 +11,20 @@ function Start () {
 }
 
 function Update () {
-	if (Input.GetKeyDown ("space")) {
+	if (Input.GetKeyDown (KeyCode.UpArrow)) {
+		fieldArray = MergeField("north", fieldArray);
+		CreateCubes(fieldArray);
+	}
+	if (Input.GetKeyDown (KeyCode.DownArrow)) {
+		fieldArray = MergeField("south", fieldArray);
+		CreateCubes(fieldArray);
+	}
+	if (Input.GetKeyDown (KeyCode.LeftArrow)) {
 		fieldArray = MergeField("west", fieldArray);
+		CreateCubes(fieldArray);
+	}
+	if (Input.GetKeyDown (KeyCode.RightArrow)) {
+		fieldArray = MergeField("east", fieldArray);
 		CreateCubes(fieldArray);
 	}
 }
@@ -36,9 +48,9 @@ function CreateCubes (arr : int[,]) {
 			var cubeLvl = arr[i,n];
 			var obj : GameObject = GameObject.Instantiate(Resources.Load("Prefabs/Cube"));
 			var ancX = -4.8;
-			var ancY = -4.8;
+			var ancY = 4.8;
 			obj.transform.parent = GameObject.Find("objField").transform;
-			obj.transform.localPosition = Vector3(ancX + i * 2.4, ancY + n * 2.4, -1);
+			obj.transform.localPosition = Vector3(ancX + i * 2.4, ancY - n * 2.4, -1);
 			obj.GetComponent(scrCube).cubeLevel = cubeLvl;
 			obj.GetComponent(scrCube).fieldPos.Add(i);
 			obj.GetComponent(scrCube).fieldPos.Add(n);
@@ -53,55 +65,97 @@ function DestroyCubes () {
 	}
 }
 
-function MergeField (direction, arr : int[,]) {
-	var newArray : int[,] = new int[5,5];
+function MergeField (direction, field : int[,]) {
+	var newField : int[,] = new int[5,5];
+	var i : int;
+	var n : int;
+	var row : Array = new Array();
 	
 	switch (direction) {
 		case "north":
-			
-			break;
-			
-		case "south":
-			
+			for (i = 0; i < 5; i++) {
+				row.Clear();
+				
+				for (n = 0; n < 5; n++) {
+					row.Add(field[i,n]);				
+				}
+				row = ShiftToSide(row);
+				for (n = 0; n < row.length; n++) {
+					newField[i,n] = row[n];
+				}
+			}
 			break;
 			
 		case "west":
-			for (var i = 0; i < arr.GetLength(0); i++) {
-				var row : Array = new Array();
+			for (i = 0; i < 5; i++) {
+				row.Clear();
 				
-				for (var n = 0; n < arr.GetLength(1); n++) {
-					if (n < 4) {
-						if (arr[i,n] > 0 && (arr[i,n] == arr[i,n+1])) {
-							row.Add(arr[i,n] + 1);
-							n++;
-						}
-						else if (arr[i,n] > 0) {
-							row.Add(arr[i,n]);
-						}
-					}
-					else {
-						if (arr[i,n] > 0) {
-							row.Add(arr[i,n]);
-						}
-					}
-					
+				for (n = 0; n < 5; n++) {
+					row.Add(field[n,i]);				
 				}
-				while (row.length < 5) {
-					row.Add(0);
+				row = ShiftToSide(row);
+				for (n = 0; n < row.length; n++) {
+					newField[n,i] = row[n];
 				}
-				for (var p = 0; p < row.length; p++) {
-					newArray[i,p] = row[p];
+			}
+			break;
+			
+		case "south":
+			for (i = 4; i >= 0; i--) {
+				row.Clear();
+				
+				for (n = 0; n < 5; n++) {
+					row.Add(field[i,n]);				
+				}
+				row = ShiftToSide(row);
+				for (n = 0; n < row.length; n++) {
+					newField[i,4 - n] = row[n];
 				}
 			}
 			break;
 			
 		case "east":
-			
+			for (i = 0; i < 5; i++) {
+				row.Clear();
+				
+				for (n = 4; n >= 0; n--) {
+					row.Add(field[n,i]);				
+				}
+				row = ShiftToSide(row);
+				for (n = 0; n < row.length; n++) {
+					newField[4 - n,i] = row[n];
+				}
+			}
 			break;
+	}
+	return newField;
+}
+
+function ShiftToSide (arr : Array) {
+	var newArray : Array = new Array();
+	var i = 0;
+	while (i < arr.length) {
+		if (arr[i] == 0) {
+			arr.RemoveAt(i);
+		}
+		else {
+			newArray.Add(arr[i]);
+			i++;
+		}
+	}
+
+	for (i = 0; i < newArray.length - 1; i++) {
+		if (newArray[i] == newArray[i+1]) {
+			var tempInt : int = newArray[i];
+			newArray[i] = tempInt + 1;
+			newArray.RemoveAt(i+1);
+		}		
+	}
+	while (newArray.length < 5) {
+		newArray.Add(0);
 	}
 	return newArray;
 }
-
 
 
 

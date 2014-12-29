@@ -30,6 +30,9 @@ function SetColor () {
 	if (cubeLevel < colorList.Length) {
 		renderer.material.color = colorList[cubeLevel];
 	}
+	else {
+		renderer.material.color = colorList[colorList.Length - 1];
+	}
 }
 
 function SetText () {
