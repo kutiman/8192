@@ -13,17 +13,18 @@ function Start () {
 function Update () {
 	if (Input.GetKeyDown (KeyCode.UpArrow)) {
 		fieldArray = MergeField("north", fieldArray);
+		InsertNewCube();
 		CreateCubes(fieldArray);
 	}
-	if (Input.GetKeyDown (KeyCode.DownArrow)) {
+	else if (Input.GetKeyDown (KeyCode.DownArrow)) {
 		fieldArray = MergeField("south", fieldArray);
 		CreateCubes(fieldArray);
 	}
-	if (Input.GetKeyDown (KeyCode.LeftArrow)) {
+	else if (Input.GetKeyDown (KeyCode.LeftArrow)) {
 		fieldArray = MergeField("west", fieldArray);
 		CreateCubes(fieldArray);
 	}
-	if (Input.GetKeyDown (KeyCode.RightArrow)) {
+	else if (Input.GetKeyDown (KeyCode.RightArrow)) {
 		fieldArray = MergeField("east", fieldArray);
 		CreateCubes(fieldArray);
 	}
@@ -36,6 +37,9 @@ function CreateNewField () {
 			arr[i,n] = 0;
 		}
 	}
+	// debugging
+	arr[3,4] = 6;
+	// end debugging
 	return arr;
 }
 
@@ -101,10 +105,10 @@ function MergeField (direction, field : int[,]) {
 			break;
 			
 		case "south":
-			for (i = 4; i >= 0; i--) {
+			for (i = 0; i < 5; i++) {
 				row.Clear();
 				
-				for (n = 0; n < 5; n++) {
+				for (n = 4; n >= 0; n--) {
 					row.Add(field[i,n]);				
 				}
 				row = ShiftToSide(row);
@@ -157,6 +161,30 @@ function ShiftToSide (arr : Array) {
 	return newArray;
 }
 
+function GetEmptySpot (field : int[,]) {
+	var tempList : Array = new Array();
+	for (var i = 0; i < field.GetLength(0); i++) {
+		for (var n = 0; n < field.GetLength(1); n++) {
+			if (field[i,n] == 0) {
+				tempList.Add(Vector2(i,n));
+			}
+		}
+	}
+	var rndm = Random.Range(0, tempList.length);
+	if (tempList.length > 0) {
+		return tempList[rndm];
+	}
+	else {
+		return Vector2(-1,-1);
+	}
+}
+
+function InsertNewCube () {
+	var pos : Vector2 = GetEmptySpot(fieldArray);
+	if (pos.x != -1) {
+		fieldArray[pos.x, pos.y] = 1;
+	}
+}
 
 
 
