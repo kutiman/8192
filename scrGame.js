@@ -11,22 +11,19 @@ function Start () {
 }
 
 function Update () {
-	if (Input.GetKeyDown (KeyCode.UpArrow)) {
-		fieldArray = MergeField("north", fieldArray);
+	if (Input.GetKeyDown (KeyCode.UpArrow)) {NewTurn("north");}
+	else if (Input.GetKeyDown (KeyCode.DownArrow)) {NewTurn("south");}
+	else if (Input.GetKeyDown (KeyCode.LeftArrow)) {NewTurn("west");}
+	else if (Input.GetKeyDown (KeyCode.RightArrow)) {NewTurn("east");}
+}
+
+function NewTurn (direction : String) {
+	var mergingPossible : boolean = IsMergingPossible(direction, fieldArray);
+	if (mergingPossible == true) {
+		fieldArray = MergeField(direction, fieldArray);
+		CreateCubes(fieldArray);
 		InsertNewCube();
-		CreateCubes(fieldArray);
-	}
-	else if (Input.GetKeyDown (KeyCode.DownArrow)) {
-		fieldArray = MergeField("south", fieldArray);
-		CreateCubes(fieldArray);
-	}
-	else if (Input.GetKeyDown (KeyCode.LeftArrow)) {
-		fieldArray = MergeField("west", fieldArray);
-		CreateCubes(fieldArray);
-	}
-	else if (Input.GetKeyDown (KeyCode.RightArrow)) {
-		fieldArray = MergeField("east", fieldArray);
-		CreateCubes(fieldArray);
+		gameTurn++;
 	}
 }
 
@@ -46,13 +43,13 @@ function CreateNewField () {
 function CreateCubes (arr : int[,]) {
 
 	DestroyCubes();
-	
+	var ancX = -4.8;
+	var ancY = 4.8;	
 	for (var i = 0; i < 5; i++) {
 		for (var n = 0; n < 5; n++){
 			var cubeLvl = arr[i,n];
 			var obj : GameObject = GameObject.Instantiate(Resources.Load("Prefabs/Cube"));
-			var ancX = -4.8;
-			var ancY = 4.8;
+
 			obj.transform.parent = GameObject.Find("objField").transform;
 			obj.transform.localPosition = Vector3(ancX + i * 2.4, ancY - n * 2.4, -1);
 			obj.GetComponent(scrCube).cubeLevel = cubeLvl;
@@ -70,7 +67,7 @@ function DestroyCubes () {
 }
 
 function MergeField (direction, field : int[,]) {
-	var newField : int[,] = new int[5,5];
+	var newField : int[,] = new int[field.GetLength(0),field.GetLength(1)];
 	var i : int;
 	var n : int;
 	var row : Array = new Array();
@@ -171,6 +168,7 @@ function GetEmptySpot (field : int[,]) {
 		}
 	}
 	var rndm = Random.Range(0, tempList.length);
+	Debug.Log(tempList.length);
 	if (tempList.length > 0) {
 		return tempList[rndm];
 	}
@@ -180,11 +178,74 @@ function GetEmptySpot (field : int[,]) {
 }
 
 function InsertNewCube () {
+	var bool = false;
 	var pos : Vector2 = GetEmptySpot(fieldArray);
 	if (pos.x != -1) {
 		fieldArray[pos.x, pos.y] = 1;
+		bool = true;
 	}
+	return bool;
 }
+
+function IsMovePossible (field : int[,]) {
+	var bool = false;
+	
+	for (var i = 0; i < field.GetLength(0); i++) {
+		for (var n = 0; n < field.GetLength(1); n++) {
+			if (field[i,n] == 0) {bool = true; break;}
+			if (i > 0) {
+				if (field[i,n] == field[i-1,n]) {bool = true; break;}
+			}
+			if (i < field.GetLength(0) - 1) {
+				if (field[i,n] == field[i+1,n]) {bool = true; break;}
+			}
+			if (n > 0) {
+				if (field[i,n] == field[i,n-1]) {bool = true; break;}
+			}
+			if (n < field.GetLength(1) - 1) {
+				if (field[i,n] == field[i,n+1]) {bool = true; break;}
+			}
+		}
+	}
+	return bool;
+}
+
+function IsMergingPossible (direction, field : int[,]) {
+	var bool : boolean = true;
+	var newField : int[,] = new int[field.GetLength(0), field.GetLength(1)];
+	
+	newField = MergeField(direction, field);
+	var fieldsIdentical : boolean = AreFieldsIdentical(newField, field);
+	if (fieldsIdentical) {bool = false;}
+	return bool;
+}
+
+function AreFieldsIdentical (field1 : int[,], field2 : int[,]) {
+	var bool : boolean = true;
+	for (var i = 0; i < field1.GetLength(0); i++) {
+		for (var n = 0; n < field1.GetLength(1); n++) {
+			if (field1[i,n] != field2[i,n]) {
+				bool = false;
+				//break;
+			}
+		}
+	}
+	Debug.Log("Fields are identical - " + bool.ToString());
+	return bool;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
