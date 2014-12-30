@@ -59,10 +59,7 @@ function SetText () {
 }
 
 function OnMouseDown () {
-	cubeLevel++;
-	SetText();
-	SetColor();
-	scrGame.fieldArray[fieldPos[0], fieldPos[1]] = cubeLevel;
+
 }
 
 function CreateColorList () {

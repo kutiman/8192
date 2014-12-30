@@ -1,6 +1,6 @@
 ﻿#pragma strict
 
-static var fieldArray : int[,];
+var fieldArray : int[,];
 var objField : GameObject;
 
 var gameTurn : int = 0;
@@ -20,9 +20,11 @@ function Update () {
 function NewTurn (direction : String) {
 	var mergingPossible : boolean = IsMergingPossible(direction, fieldArray);
 	if (mergingPossible == true) {
+		var countA : int = CountZeroes(fieldArray);
 		fieldArray = MergeField(direction, fieldArray);
+		var countB : int = CountZeroes(fieldArray);
+		InsertNewCube(countB - countA + 1);
 		CreateCubes(fieldArray);
-		InsertNewCube();
 		gameTurn++;
 	}
 }
@@ -177,11 +179,11 @@ function GetEmptySpot (field : int[,]) {
 	}
 }
 
-function InsertNewCube () {
+function InsertNewCube (level : int) {
 	var bool = false;
 	var pos : Vector2 = GetEmptySpot(fieldArray);
 	if (pos.x != -1) {
-		fieldArray[pos.x, pos.y] = 1;
+		fieldArray[pos.x, pos.y] = level;
 		bool = true;
 	}
 	return bool;
@@ -234,7 +236,16 @@ function AreFieldsIdentical (field1 : int[,], field2 : int[,]) {
 	return bool;
 }
 
-
+function CountZeroes (field : int[,]) {
+	var count : int = 0;
+	for (var i = 0; i < field.GetLength(0); i++) {
+		for (var n = 0; n < field.GetLength(1); n++) {
+			if (field[i,n] == 0) {count++;}
+		}
+	}
+	Debug.Log(count);
+	return count;
+}
 
 
 
