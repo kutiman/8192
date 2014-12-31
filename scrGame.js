@@ -5,8 +5,10 @@ var objField : GameObject;
 
 var gameTurn : int = 0;
 
+var allFields : Hashtable = new Hashtable();
+
 function Start () {
-	fieldArray = CreateNewField();
+	fieldArray = CreateNewField(4);
 	CreateCubes(fieldArray);
 }
 
@@ -15,11 +17,13 @@ function Update () {
 	else if (Input.GetKeyDown (KeyCode.DownArrow)) {NewTurn("south");}
 	else if (Input.GetKeyDown (KeyCode.LeftArrow)) {NewTurn("west");}
 	else if (Input.GetKeyDown (KeyCode.RightArrow)) {NewTurn("east");}
+	else if (Input.GetKeyDown (KeyCode.Space)) {Debug.Log(allFields.Count);}
 }
 
 function NewTurn (direction : String) {
 	var mergingPossible : boolean = IsMergingPossible(direction, fieldArray);
 	if (mergingPossible == true) {
+		allFields["field" + (allFields.Count).ToString()] = fieldArray; // store turn's field state for UNDO
 		var countA : int = CountZeroes(fieldArray);
 		fieldArray = MergeField(direction, fieldArray);
 		var countB : int = CountZeroes(fieldArray);
@@ -29,15 +33,16 @@ function NewTurn (direction : String) {
 	}
 }
 
-function CreateNewField () {
-	var arr : int[,] = new int[5,5];
-	for (var i = 0; i < 5; i++) {
-		for (var n = 0; n < 5; n++){
+function CreateNewField (size : int) {
+	var arr : int[,] = new int[size,size];
+	for (var i = 0; i < size; i++) {
+		for (var n = 0; n < size; n++){
 			arr[i,n] = 0;
 		}
 	}
 	// debugging
-	arr[3,4] = 6;
+	arr[0,1] = 1;
+	arr[1,0] = 1;
 	// end debugging
 	return arr;
 }
@@ -46,9 +51,10 @@ function CreateCubes (arr : int[,]) {
 
 	DestroyCubes();
 	var ancX = -4.8;
-	var ancY = 4.8;	
-	for (var i = 0; i < 5; i++) {
-		for (var n = 0; n < 5; n++){
+	var ancY = 4.8;
+	var size : int = arr.GetLength(0);
+	for (var i = 0; i < size; i++) {
+		for (var n = 0; n < size; n++){
 			var cubeLvl = arr[i,n];
 			var obj : GameObject = GameObject.Instantiate(Resources.Load("Prefabs/Cube"));
 
@@ -69,20 +75,21 @@ function DestroyCubes () {
 }
 
 function MergeField (direction, field : int[,]) {
-	var newField : int[,] = new int[field.GetLength(0),field.GetLength(1)];
+	var size : int = field.GetLength(0);
+	var newField : int[,] = new int[size,size];
 	var i : int;
 	var n : int;
 	var row : Array = new Array();
 	
 	switch (direction) {
 		case "north":
-			for (i = 0; i < 5; i++) {
+			for (i = 0; i < size; i++) {
 				row.Clear();
 				
-				for (n = 0; n < 5; n++) {
+				for (n = 0; n < size; n++) {
 					row.Add(field[i,n]);				
 				}
-				row = ShiftToSide(row);
+				row = ShiftToSide(row, size);
 				for (n = 0; n < row.length; n++) {
 					newField[i,n] = row[n];
 				}
@@ -90,13 +97,13 @@ function MergeField (direction, field : int[,]) {
 			break;
 			
 		case "west":
-			for (i = 0; i < 5; i++) {
+			for (i = 0; i < size; i++) {
 				row.Clear();
 				
-				for (n = 0; n < 5; n++) {
+				for (n = 0; n < size; n++) {
 					row.Add(field[n,i]);				
 				}
-				row = ShiftToSide(row);
+				row = ShiftToSide(row, size);
 				for (n = 0; n < row.length; n++) {
 					newField[n,i] = row[n];
 				}
@@ -104,29 +111,29 @@ function MergeField (direction, field : int[,]) {
 			break;
 			
 		case "south":
-			for (i = 0; i < 5; i++) {
+			for (i = 0; i < size; i++) {
 				row.Clear();
 				
-				for (n = 4; n >= 0; n--) {
+				for (n = size-1; n >= 0; n--) {
 					row.Add(field[i,n]);				
 				}
-				row = ShiftToSide(row);
+				row = ShiftToSide(row, size);
 				for (n = 0; n < row.length; n++) {
-					newField[i,4 - n] = row[n];
+					newField[i,size-1 - n] = row[n];
 				}
 			}
 			break;
 			
 		case "east":
-			for (i = 0; i < 5; i++) {
+			for (i = 0; i < size; i++) {
 				row.Clear();
 				
-				for (n = 4; n >= 0; n--) {
+				for (n = size-1; n >= 0; n--) {
 					row.Add(field[n,i]);				
 				}
-				row = ShiftToSide(row);
+				row = ShiftToSide(row, size);
 				for (n = 0; n < row.length; n++) {
-					newField[4 - n,i] = row[n];
+					newField[size-1 - n,i] = row[n];
 				}
 			}
 			break;
@@ -134,7 +141,7 @@ function MergeField (direction, field : int[,]) {
 	return newField;
 }
 
-function ShiftToSide (arr : Array) {
+function ShiftToSide (arr : Array, size : int) {
 	var newArray : Array = new Array();
 	var i = 0;
 	while (i < arr.length) {
@@ -154,7 +161,7 @@ function ShiftToSide (arr : Array) {
 			newArray.RemoveAt(i+1);
 		}		
 	}
-	while (newArray.length < 5) {
+	while (newArray.length < size) {
 		newArray.Add(0);
 	}
 	return newArray;
@@ -170,7 +177,6 @@ function GetEmptySpot (field : int[,]) {
 		}
 	}
 	var rndm = Random.Range(0, tempList.length);
-	Debug.Log(tempList.length);
 	if (tempList.length > 0) {
 		return tempList[rndm];
 	}
@@ -232,7 +238,6 @@ function AreFieldsIdentical (field1 : int[,], field2 : int[,]) {
 			}
 		}
 	}
-	Debug.Log("Fields are identical - " + bool.ToString());
 	return bool;
 }
 
@@ -243,11 +248,25 @@ function CountZeroes (field : int[,]) {
 			if (field[i,n] == 0) {count++;}
 		}
 	}
-	Debug.Log(count);
 	return count;
 }
 
+function UndoTurn () {
+	if (allFields.Count > 0) {
+		var lastTurn : String = "field" + (allFields.Count - 1).ToString();
+		fieldArray = allFields[lastTurn.ToString()];
+		allFields.Remove(lastTurn.ToString());
+		CreateCubes(fieldArray);
+		gameTurn--;
+	}	
+}
 
+function RestartGame () {
+	allFields.Clear();
+	gameTurn = 0;
+	fieldArray = CreateNewField(fieldArray.GetLength(0));
+	CreateCubes(fieldArray);
+}
 
 
 
