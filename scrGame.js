@@ -8,7 +8,7 @@ var gameTurn : int = 0;
 var allFields : Hashtable = new Hashtable();
 
 function Start () {
-	fieldArray = CreateNewField(4);
+	fieldArray = CreateNewField(5);
 	CreateCubes(fieldArray);
 }
 
